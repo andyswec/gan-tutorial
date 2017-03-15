@@ -1,6 +1,6 @@
+import logging
 import tensorflow as tf
 from tensorflow.contrib.layers import fully_connected
-
 import numpy as np
 
 G_INPUT_SIZE = 1
@@ -11,6 +11,10 @@ HIDDEN_SIZE = 11
 BATCH_SIZE = 100
 LEARNING_RATE = 0.01
 EPOCHS = 10 ** 6
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger()
+logger.addHandler(logging.FileHandler('gan-tutorial.log', 'w'))
 
 
 def z_sample(shape):
@@ -50,8 +54,8 @@ with tf.device('/gpu:0'):
         trainable_vars = tf.trainable_variables()
         d_params = [v for v in trainable_vars if v.name.startswith('D/')]
         g_params = [v for v in trainable_vars if v.name.startswith('G/')]
-        print("D params count: {}".format(len(d_params)))
-        print("G params count: {}".format(len(g_params)))
+        logger.info("D params count: {}".format(len(d_params)))
+        logger.info("G params count: {}".format(len(g_params)))
 
         opt_d = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(loss_d)
         opt_g = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(loss_g)
@@ -68,4 +72,4 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_plac
         loss_ds, _ = session.run([loss_d, opt_d], feed_dict={x: xs, z: zs})
 
         if step % 10000 == 0:
-            print('Epoch {}: loss_d={} loss_g={}'.format(step, loss_ds, loss_gs))
+            logger.info('Epoch {}: loss_d={} loss_g={}'.format(step, loss_ds, loss_gs))
